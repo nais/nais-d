@@ -59,6 +59,11 @@ func setupCommand() *cli.Command {
 					return nil
 				},
 			},
+			&cli.BoolFlag{
+				Name:     "wait",
+				Category: "UX",
+				Usage:    "Wait for setup to complete",
+			},
 		},
 		Before: beforeFunc,
 		Action: func(cCtx *cli.Context) error {
@@ -68,6 +73,7 @@ func setupCommand() *cli.Command {
 			tier := cCtx.String(tierFlagName)
 			diskSize := cCtx.Int(diskSizeFlagName)
 			instanceType := cCtx.String(typeFlagName)
+			wait := cCtx.Bool("wait")
 
 			fmt.Println(cCtx.Command.Description)
 			cfg.Target.Tier = isSet(tier)
@@ -77,7 +83,7 @@ func setupCommand() *cli.Command {
 			client := k8s.SetupClient(k8s.WithKubeContext(cluster))
 			migrator := migrate.NewMigrator(client, cfg)
 
-			err := migrator.Setup(context.Background())
+			err := migrator.Setup(context.Background(), wait)
 			if err != nil {
 				return fmt.Errorf("error setting up migration: %w", err)
 			}
